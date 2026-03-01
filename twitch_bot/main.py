@@ -25,8 +25,7 @@ async def main():
     # Set up logging
     logger = setup_logger(
         name="twitch_bot",
-        level="INFO",  # Could be configurable
-        log_file="logs/bot.log" if Path("logs").exists() else None
+        level="INFO"
     )
     # Also surface TwitchIO's internal logger so errors aren't swallowed
     setup_logger(name="twitchio", level="INFO")

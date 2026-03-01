@@ -110,7 +110,7 @@ class TwitchBot(commands.Bot):
         basic_commands = get_basic_commands()
 
         for cmd in basic_commands:
-            if hasattr(cmd, 'command_handler'):
+            if hasattr(cmd, 'command_handler') and cmd.command_handler is None:
                 cmd.command_handler = self.command_handler
 
         for command in basic_commands:

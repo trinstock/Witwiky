@@ -136,21 +136,21 @@ class PingCommand(BaseCommand):
 
 class AboutCommand(BaseCommand):
     """Shows information about the bot."""
-    
+
     def __init__(self, version: str = "1.0.0"):
         super().__init__(
             name="about",
             description="Shows information about this bot"
         )
         self.version = version
-        
+
     async def execute(self, message: Any, **kwargs) -> Optional[str]:
         """Execute the about command.
-        
+
         Args:
             message: The chat message that triggered the command
             **kwargs: Additional context
-            
+
         Returns:
             About information string
         """
@@ -161,9 +161,27 @@ class AboutCommand(BaseCommand):
         )
 
 
+class CommandsCommand(BaseCommand):
+    """Lists all available commands in a compact format."""
+
+    def __init__(self, command_handler=None):
+        super().__init__(
+            name="commands",
+            description="Lists all available commands"
+        )
+        self.command_handler = command_handler
+
+    async def execute(self, message: Any, **kwargs) -> Optional[str]:
+        if self.command_handler:
+            names = sorted(self.command_handler.get_all_commands().keys())
+            prefix = self.command_handler.command_prefix
+            return "Commands: " + ", ".join(f"{prefix}{name}" for name in names)
+        return "Commands: !ping, !hello, !uptime, !about, !help, !commands"
+
+
 def get_basic_commands() -> list:
     """Get all basic commands.
-    
+
     Returns:
         List of command instances
     """
@@ -172,5 +190,6 @@ def get_basic_commands() -> list:
         UptimeCommand(),
         HelpCommand(),  # Will be configured later
         PingCommand(),
-        AboutCommand()
+        AboutCommand(),
+        CommandsCommand()  # Will be configured later
     ]
