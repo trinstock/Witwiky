@@ -162,6 +162,47 @@ class AboutCommand(BaseCommand):
         )
 
 
+class EightBallCommand(BaseCommand):
+    """Magic 8-ball command."""
+
+    RESPONSES = [
+        "It is certain 🎱",
+        "Without a doubt 🎱",
+        "Yes, definitely 🎱",
+        "You may rely on it 🎱",
+        "As I see it, yes 🎱",
+        "Most likely 🎱",
+        "Outlook good 🎱",
+        "Signs point to yes 🎱",
+        "Reply hazy, try again 🎱",
+        "Ask again later 🎱",
+        "Better not tell you now 🎱",
+        "Cannot predict now 🎱",
+        "Concentrate and ask again 🎱",
+        "Don't count on it 🎱",
+        "My reply is no 🎱",
+        "My sources say no 🎱",
+        "Outlook not so good 🎱",
+        "Very doubtful 🎱",
+    ]
+
+    def __init__(self):
+        super().__init__(
+            name="8ball",
+            description="Ask the magic 8-ball a question"
+        )
+
+    async def execute(self, message: Any, **kwargs) -> Optional[str]:
+        user = kwargs.get("user", "Someone")
+        content = message.text.strip()
+        parts = content.split(None, 1)
+        if len(parts) < 2 or not parts[1].strip():
+            return f"Usage: !8ball <your question>"
+        question = parts[1].strip()
+        answer = random.choice(self.RESPONSES)
+        return f"@{user} asks: {question} — {answer}"
+
+
 class HugCommand(BaseCommand):
     """Give a hug to another user."""
 
@@ -322,6 +363,7 @@ def get_basic_commands() -> list:
         HelpCommand(),  # Will be configured later
         PingCommand(),
         AboutCommand(),
+        EightBallCommand(),
         HugCommand(),
         DiceCommand(),
         LurkCommand(),
