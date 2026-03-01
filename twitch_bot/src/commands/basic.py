@@ -174,25 +174,22 @@ class SongCommand(BaseCommand):
 
     async def execute(self, message: Any, **kwargs) -> Optional[str]:
         import asyncio
-        import re
         import requests as req
 
         if not self.nowplaying_url:
             return "NOWPLAYING_URL is not set in .env"
 
-        def fetch_html():
-            return req.get(self.nowplaying_url, timeout=5).text
+        def fetch_track():
+            r = req.get(f"{self.nowplaying_url.rstrip('/')}/config", timeout=5)
+            r.raise_for_status()
+            return r.json().get("currentTrack", {})
 
         try:
-            html = await asyncio.to_thread(fetch_html)
+            track = await asyncio.to_thread(fetch_track)
 
-            title_match = re.search(r'class="sideways-title"[^>]*>([^<]+)</h1>', html)
-            artist_match = re.search(r'class="sideways-artist"[^>]*>([^<]+)</h2>', html)
-            label_match = re.search(r'class="sideways-label"[^>]*>([^<]+)</h3>', html)
-
-            title = title_match.group(1).strip() if title_match else None
-            artist = artist_match.group(1).strip() if artist_match else None
-            label = label_match.group(1).strip() if label_match else None
+            title = track.get("title", "").strip()
+            artist = track.get("artist", "").strip()
+            label = track.get("label", "").strip()
 
             if title and artist and label:
                 return f"Now playing: {title} by {artist} [{label}] 🎵"
@@ -201,7 +198,7 @@ class SongCommand(BaseCommand):
             elif title:
                 return f"Now playing: {title} 🎵"
             else:
-                return "Could not read song info from Now Playing service."
+                return "No track currently playing."
         except req.exceptions.ConnectionError:
             return "Cannot connect to Now Playing service. Is VirtualDJ running?"
         except Exception as e:
