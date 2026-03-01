@@ -56,12 +56,17 @@ class TwitchBot(commands.Bot):
             client_id=config.twitch.client_id
         )
 
-        # Pre-fetch broadcaster's numeric user ID for EventSub subscription
-        self._broadcaster_id = self._fetch_user_id(
-            login=config.twitch.channel_name,
-            access_token=oauth_token,
-            client_id=config.twitch.client_id
-        )
+        # Pre-fetch broadcaster IDs for all configured channels
+        self._broadcaster_ids: dict = {}
+        for channel in config.twitch.channel_names:
+            self._broadcaster_ids[channel] = self._fetch_user_id(
+                login=channel,
+                access_token=oauth_token,
+                client_id=config.twitch.client_id
+            )
+
+        # Keep first channel's ID for backward compat
+        self._broadcaster_id = self._broadcaster_ids.get(config.twitch.channel_name, "")
 
         # Initialize base twitchio bot (v3 API)
         super().__init__(
@@ -167,13 +172,16 @@ class TwitchBot(commands.Bot):
         except Exception as e:
             self.logger.warning(f"Could not clear stale subscriptions: {e}")
 
-        await self.subscribe_websocket(
-            ChatMessageSubscription(
-                broadcaster_user_id=self._broadcaster_id,
-                user_id=self.bot_id
+        for channel, broadcaster_id in self._broadcaster_ids.items():
+            await self.subscribe_websocket(
+                ChatMessageSubscription(
+                    broadcaster_user_id=broadcaster_id,
+                    user_id=self.bot_id
+                )
             )
-        )
-        self.logger.info(f"Bot is ready and listening in #{self.config.twitch.channel_name}")
+
+        channels = ", ".join(f"#{c}" for c in self._broadcaster_ids)
+        self.logger.info(f"Bot is ready and listening in {channels}")
 
     async def add_token(self, token: str, refresh: str):
         """Add a token and immediately persist it so it survives restarts."""
@@ -235,7 +243,8 @@ class TwitchBot(commands.Bot):
                     message=payload,
                     command=command,
                     user=payload.chatter.name,
-                    channel=payload.broadcaster.name
+                    channel=payload.broadcaster.name,
+                    broadcaster_id=payload.broadcaster.id
                 )
 
                 if response:

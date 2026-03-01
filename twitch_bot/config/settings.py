@@ -18,13 +18,20 @@ class TwitchConfig:
     client_id: str
     client_secret: str
     bot_username: str
-    channel_name: str
+    channel_names: list
     redirect_uri: str = "http://localhost:8080"
-    
+
+    @property
+    def channel_name(self) -> str:
+        """First channel name (backward compat)."""
+        return self.channel_names[0] if self.channel_names else ""
+
     def __post_init__(self):
         """Validate required configuration."""
         if not all([self.client_id, self.client_secret, self.bot_username]):
             raise ValueError("Missing required Twitch configuration")
+        if not self.channel_names:
+            raise ValueError("At least one channel name is required")
 
 
 @dataclass
@@ -52,11 +59,15 @@ class Config:
     def from_env(cls) -> "Config":
         """Load configuration from environment variables."""
         # Twitch configuration
+        # Support comma-separated TWITCH_CHANNEL_NAMES or fallback to TWITCH_CHANNEL_NAME
+        raw_channels = os.getenv("TWITCH_CHANNEL_NAMES") or os.getenv("TWITCH_CHANNEL_NAME", "")
+        channel_names = [c.strip() for c in raw_channels.split(",") if c.strip()]
+
         twitch_config = TwitchConfig(
             client_id=os.getenv("TWITCH_CLIENT_ID", ""),
             client_secret=os.getenv("TWITCH_CLIENT_SECRET", ""),
             bot_username=os.getenv("TWITCH_BOT_USERNAME", ""),
-            channel_name=os.getenv("TWITCH_CHANNEL_NAME", ""),
+            channel_names=channel_names,
             redirect_uri=os.getenv("TWITCH_REDIRECT_URI", "http://localhost:8080")
         )
         

@@ -195,7 +195,8 @@ class TimeoutCommand(BaseCommand):
         if not self._is_mod_or_broadcaster(message):
             return f"@{user} — this command is for mods only."
 
-        if not self.client_id or not self.broadcaster_id or not self.get_token:
+        broadcaster_id = kwargs.get("broadcaster_id") or self.broadcaster_id
+        if not self.client_id or not broadcaster_id or not self.get_token:
             return "Timeout command is not configured."
 
         content = message.text.strip()
@@ -228,7 +229,7 @@ class TimeoutCommand(BaseCommand):
         def do_timeout(user_id):
             return req.post(
                 "https://api.twitch.tv/helix/moderation/bans",
-                params={"broadcaster_id": self.broadcaster_id, "moderator_id": self.bot_id},
+                params={"broadcaster_id": broadcaster_id, "moderator_id": self.bot_id},
                 json={"data": {"user_id": user_id, "duration": duration}},
                 headers={"Client-ID": self.client_id, "Authorization": f"Bearer {token}"}
             )
@@ -371,7 +372,8 @@ class ClipCommand(BaseCommand):
         import asyncio
         import requests as req
 
-        if not self.client_id or not self.broadcaster_id or not self.get_token:
+        broadcaster_id = kwargs.get("broadcaster_id") or self.broadcaster_id
+        if not self.client_id or not broadcaster_id or not self.get_token:
             return "Clip command is not configured."
 
         token = self.get_token()
@@ -381,7 +383,7 @@ class ClipCommand(BaseCommand):
         def create_clip():
             return req.post(
                 "https://api.twitch.tv/helix/clips",
-                params={"broadcaster_id": self.broadcaster_id},
+                params={"broadcaster_id": broadcaster_id},
                 headers={
                     "Client-ID": self.client_id,
                     "Authorization": f"Bearer {token}"
