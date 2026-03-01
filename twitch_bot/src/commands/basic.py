@@ -161,6 +161,55 @@ class AboutCommand(BaseCommand):
         )
 
 
+class ClipCommand(BaseCommand):
+    """Creates a clip of the current stream."""
+
+    def __init__(self, client_id=None, broadcaster_id=None, get_token=None):
+        super().__init__(
+            name="clip",
+            description="Creates a clip of the current stream"
+        )
+        self.client_id = client_id
+        self.broadcaster_id = broadcaster_id
+        self.get_token = get_token
+
+    async def execute(self, message: Any, **kwargs) -> Optional[str]:
+        import asyncio
+        import requests as req
+
+        if not self.client_id or not self.broadcaster_id or not self.get_token:
+            return "Clip command is not configured."
+
+        token = self.get_token()
+        if not token:
+            return "No access token available to create clip."
+
+        def create_clip():
+            return req.post(
+                "https://api.twitch.tv/helix/clips",
+                params={"broadcaster_id": self.broadcaster_id},
+                headers={
+                    "Client-ID": self.client_id,
+                    "Authorization": f"Bearer {token}"
+                }
+            )
+
+        try:
+            response = await asyncio.to_thread(create_clip)
+            if response.status_code == 202:
+                clip_id = response.json()["data"][0]["id"]
+                return f"Clip created! https://clips.twitch.tv/{clip_id}"
+            elif response.status_code == 401:
+                return "Missing clips:edit scope — re-authorize the bot at http://localhost:8080/oauth?scopes=user:read:chat+user:write:chat+user:bot+clips:edit"
+            elif response.status_code == 404:
+                return "Stream must be live to create a clip."
+            else:
+                msg = response.json().get("message", "Unknown error")
+                return f"Failed to create clip: {msg}"
+        except Exception as e:
+            return f"Error creating clip: {e}"
+
+
 class ShoutoutCommand(BaseCommand):
     """Gives a shoutout to another streamer."""
 
@@ -210,6 +259,7 @@ def get_basic_commands() -> list:
         HelpCommand(),  # Will be configured later
         PingCommand(),
         AboutCommand(),
+        ClipCommand(),  # Will be configured later
         ShoutoutCommand(),
         CommandsCommand()  # Will be configured later
     ]

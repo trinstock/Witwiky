@@ -80,6 +80,13 @@ class TwitchBot(commands.Bot):
         self.reconnect_attempts = 0
         self.is_shutting_down = False
 
+    def _get_user_token(self) -> Optional[str]:
+        """Return the current user access token string, or None if unavailable."""
+        token_obj = self.tokens.get(self.bot_id)
+        if token_obj is None:
+            return None
+        return getattr(token_obj, "access_token", None)
+
     @staticmethod
     def _fetch_user_id(login: str, access_token: str, client_id: str) -> str:
         """Fetch the numeric Twitch user ID for a given username.
@@ -112,6 +119,10 @@ class TwitchBot(commands.Bot):
         for cmd in basic_commands:
             if hasattr(cmd, 'command_handler') and cmd.command_handler is None:
                 cmd.command_handler = self.command_handler
+            if hasattr(cmd, 'broadcaster_id') and cmd.broadcaster_id is None:
+                cmd.client_id = self.config.twitch.client_id
+                cmd.broadcaster_id = self._broadcaster_id
+                cmd.get_token = self._get_user_token
 
         for command in basic_commands:
             self.command_handler.register_command(command)
@@ -138,7 +149,7 @@ class TwitchBot(commands.Bot):
                 "     registered as a redirect URI in your Twitch app at\n"
                 "     https://dev.twitch.tv/console/apps\n\n"
                 "  2. Visit this URL in your browser while the bot is running:\n"
-                "     http://localhost:8080/oauth?scopes=user:read:chat+user:write:chat+user:bot\n\n"
+                "     http://localhost:8080/oauth?scopes=user:read:chat+user:write:chat+user:bot+clips:edit\n\n"
                 "  3. Log in as your BOT account and authorize.\n"
                 "  4. The bot will connect to chat automatically.\n"
                 + "=" * 60
