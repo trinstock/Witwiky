@@ -161,6 +161,34 @@ class AboutCommand(BaseCommand):
         )
 
 
+class LurkCommand(BaseCommand):
+    """Announce that a user is lurking."""
+
+    def __init__(self):
+        super().__init__(
+            name="lurk",
+            description="Let the streamer know you're lurking"
+        )
+
+    async def execute(self, message: Any, **kwargs) -> Optional[str]:
+        user = kwargs.get("user", "Someone")
+        return f"{user} is lurking in the shadows... 👀 Thanks for the support!"
+
+
+class UnlurkCommand(BaseCommand):
+    """Announce that a user has returned from lurking."""
+
+    def __init__(self):
+        super().__init__(
+            name="unlurk",
+            description="Announce your return from lurking"
+        )
+
+    async def execute(self, message: Any, **kwargs) -> Optional[str]:
+        user = kwargs.get("user", "Someone")
+        return f"{user} has returned from the shadows! Welcome back! 👋"
+
+
 class ClipCommand(BaseCommand):
     """Creates a clip of the current stream."""
 
@@ -259,6 +287,8 @@ def get_basic_commands() -> list:
         HelpCommand(),  # Will be configured later
         PingCommand(),
         AboutCommand(),
+        LurkCommand(),
+        UnlurkCommand(),
         ClipCommand(),  # Will be configured later
         ShoutoutCommand(),
         CommandsCommand()  # Will be configured later
