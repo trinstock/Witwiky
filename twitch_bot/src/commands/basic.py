@@ -161,6 +161,25 @@ class AboutCommand(BaseCommand):
         )
 
 
+class ShoutoutCommand(BaseCommand):
+    """Gives a shoutout to another streamer."""
+
+    def __init__(self):
+        super().__init__(
+            name="so",
+            description="Give a shoutout to another streamer"
+        )
+
+    async def execute(self, message: Any, **kwargs) -> Optional[str]:
+        user = kwargs.get("user", "someone")
+        content = message.text.strip()
+        parts = content.split(None, 1)
+        if len(parts) < 2 or not parts[1].strip():
+            return f"Usage: !so @username"
+        target = parts[1].strip().lstrip("@")
+        return f"Go show some love to @{target}! Check them out at https://twitch.tv/{target} PogChamp"
+
+
 class CommandsCommand(BaseCommand):
     """Lists all available commands in a compact format."""
 
@@ -191,5 +210,6 @@ def get_basic_commands() -> list:
         HelpCommand(),  # Will be configured later
         PingCommand(),
         AboutCommand(),
+        ShoutoutCommand(),
         CommandsCommand()  # Will be configured later
     ]
