@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.witwicky.twitchbot</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/witwicky/.openclaw/workspace/twitch_bot/venv/bin/python3</string>
+        <string>-u</string>
+        <string>/Users/witwicky/.openclaw/workspace/twitch_bot/main.py</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>/Users/witwicky/.openclaw/workspace/twitch_bot</string>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>KeepAlive</key>
+    <true/>
+
+    <key>StandardOutPath</key>
+    <string>/Users/witwicky/.openclaw/workspace/twitch_bot/logs/bot.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>/Users/witwicky/.openclaw/workspace/twitch_bot/logs/bot.log</string>
+</dict>
+</plist>
