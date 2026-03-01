@@ -2,6 +2,7 @@
 Basic commands for the Twitch bot.
 """
 
+import random
 import time
 from typing import Any, Optional
 
@@ -161,6 +162,40 @@ class AboutCommand(BaseCommand):
         )
 
 
+class HugCommand(BaseCommand):
+    """Give a hug to another user."""
+
+    def __init__(self):
+        super().__init__(
+            name="hug",
+            description="Give a hug to someone in chat"
+        )
+
+    async def execute(self, message: Any, **kwargs) -> Optional[str]:
+        user = kwargs.get("user", "Someone")
+        content = message.text.strip()
+        parts = content.split(None, 1)
+        if len(parts) < 2 or not parts[1].strip():
+            return f"Usage: !hug @username"
+        target = parts[1].strip().lstrip("@")
+        return f"{user} gives {target} a big hug! 🤗"
+
+
+class DiceCommand(BaseCommand):
+    """Roll a dice."""
+
+    def __init__(self):
+        super().__init__(
+            name="dice",
+            description="Roll a 6-sided dice"
+        )
+
+    async def execute(self, message: Any, **kwargs) -> Optional[str]:
+        user = kwargs.get("user", "Someone")
+        roll = random.randint(1, 6)
+        return f"{user} rolled a {roll}! 🎲"
+
+
 class LurkCommand(BaseCommand):
     """Announce that a user is lurking."""
 
@@ -287,6 +322,8 @@ def get_basic_commands() -> list:
         HelpCommand(),  # Will be configured later
         PingCommand(),
         AboutCommand(),
+        HugCommand(),
+        DiceCommand(),
         LurkCommand(),
         UnlurkCommand(),
         ClipCommand(),  # Will be configured later
