@@ -162,6 +162,96 @@ class AboutCommand(BaseCommand):
         )
 
 
+class TimeoutCommand(BaseCommand):
+    """Timeout a user (mods only)."""
+
+    def __init__(self, client_id=None, broadcaster_id=None, bot_id=None, get_token=None):
+        super().__init__(
+            name="timeout",
+            description="Timeout a user (mods only) — !timeout @user [seconds]"
+        )
+        self.client_id = client_id
+        self.broadcaster_id = broadcaster_id
+        self.bot_id = bot_id
+        self.get_token = get_token
+
+    def _is_mod_or_broadcaster(self, message) -> bool:
+        try:
+            badges = getattr(message.chatter, "badges", []) or []
+            for badge in badges:
+                badge_id = getattr(badge, "id", getattr(badge, "set_id", ""))
+                if badge_id in ("moderator", "broadcaster"):
+                    return True
+        except Exception:
+            pass
+        return False
+
+    async def execute(self, message: Any, **kwargs) -> Optional[str]:
+        import asyncio
+        import requests as req
+
+        user = kwargs.get("user", "you")
+
+        if not self._is_mod_or_broadcaster(message):
+            return f"@{user} — this command is for mods only."
+
+        if not self.client_id or not self.broadcaster_id or not self.get_token:
+            return "Timeout command is not configured."
+
+        content = message.text.strip()
+        parts = content.split(None, 2)
+        if len(parts) < 2 or not parts[1].strip():
+            return "Usage: !timeout @username [seconds]"
+
+        target = parts[1].strip().lstrip("@")
+        duration = 60
+        if len(parts) >= 3:
+            try:
+                duration = max(1, min(int(parts[2]), 1209600))
+            except ValueError:
+                pass
+
+        token = self.get_token()
+        if not token:
+            return "No access token available."
+
+        def get_user_id():
+            r = req.get(
+                "https://api.twitch.tv/helix/users",
+                params={"login": target},
+                headers={"Client-ID": self.client_id, "Authorization": f"Bearer {token}"}
+            )
+            r.raise_for_status()
+            users = r.json().get("data", [])
+            return users[0]["id"] if users else None
+
+        def do_timeout(user_id):
+            return req.post(
+                "https://api.twitch.tv/helix/moderation/bans",
+                params={"broadcaster_id": self.broadcaster_id, "moderator_id": self.bot_id},
+                json={"data": {"user_id": user_id, "duration": duration}},
+                headers={"Client-ID": self.client_id, "Authorization": f"Bearer {token}"}
+            )
+
+        try:
+            user_id = await asyncio.to_thread(get_user_id)
+            if not user_id:
+                return f"User '{target}' not found."
+
+            response = await asyncio.to_thread(do_timeout, user_id)
+            if response.status_code == 200:
+                return f"@{target} has been timed out for {duration} seconds. ⏱️"
+            elif response.status_code == 401:
+                return "Missing moderator:manage:banned_users scope — re-authorize the bot."
+            elif response.status_code == 403:
+                return "The bot needs to be a moderator in the channel."
+            else:
+                msg = response.json().get("message", "Unknown error")
+                return f"Failed to timeout {target}: {msg}"
+        except Exception as e:
+            return f"Error: {e}"
+
+
 class EightBallCommand(BaseCommand):
     """Magic 8-ball command."""
 
@@ -363,6 +453,7 @@ def get_basic_commands() -> list:
         HelpCommand(),  # Will be configured later
         PingCommand(),
         AboutCommand(),
+        TimeoutCommand(),  # Will be configured later
         EightBallCommand(),
         HugCommand(),
         DiceCommand(),

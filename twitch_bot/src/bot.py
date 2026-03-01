@@ -123,6 +123,8 @@ class TwitchBot(commands.Bot):
                 cmd.client_id = self.config.twitch.client_id
                 cmd.broadcaster_id = self._broadcaster_id
                 cmd.get_token = self._get_user_token
+            if hasattr(cmd, 'bot_id') and cmd.bot_id is None:
+                cmd.bot_id = self.bot_id
 
         for command in basic_commands:
             self.command_handler.register_command(command)
@@ -149,7 +151,7 @@ class TwitchBot(commands.Bot):
                 "     registered as a redirect URI in your Twitch app at\n"
                 "     https://dev.twitch.tv/console/apps\n\n"
                 "  2. Visit this URL in your browser while the bot is running:\n"
-                "     http://localhost:8080/oauth?scopes=user:read:chat+user:write:chat+user:bot+clips:edit\n\n"
+                "     http://localhost:8080/oauth?scopes=user:read:chat+user:write:chat+user:bot+clips:edit+moderator:manage:banned_users\n\n"
                 "  3. Log in as your BOT account and authorize.\n"
                 "  4. The bot will connect to chat automatically.\n"
                 + "=" * 60
