@@ -1,0 +1,26 @@
+# Core Twitch bot functionality
+twitchio>=3.2.0
+
+# HTTP client for OAuth and API calls
+requests==2.31.0
+
+# Environment variable management
+python-dotenv==1.0.0
+
+# Logging and configuration
+pyyaml==6.0.1
+
+# Async utilities
+aiofiles==23.2.0
+
+# Date/time handling
+python-dateutil==2.8.2
+
+# Development and testing
+pytest==7.4.3
+pytest-asyncio==0.21.1
+black==23.11.0
+flake8==6.1.0
+
+# Production deployment
+gunicorn==21.2.0

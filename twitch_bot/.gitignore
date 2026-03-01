@@ -1,0 +1,7 @@
+venv/
+__pycache__/
+*.pyc
+.env
+.tio.tokens.json
+logs/
+*.log
