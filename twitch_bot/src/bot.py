@@ -130,6 +130,8 @@ class TwitchBot(commands.Bot):
                 cmd.get_token = self._get_user_token
             if hasattr(cmd, 'bot_id') and cmd.bot_id is None:
                 cmd.bot_id = self.bot_id
+            if hasattr(cmd, 'nowplaying_url') and cmd.nowplaying_url is None:
+                cmd.nowplaying_url = self.config.bot.nowplaying_url
 
         for command in basic_commands:
             self.command_handler.register_command(command)

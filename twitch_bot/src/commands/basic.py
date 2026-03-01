@@ -162,6 +162,52 @@ class AboutCommand(BaseCommand):
         )
 
 
+class SongCommand(BaseCommand):
+    """Shows the currently playing song from the Now Playing service."""
+
+    def __init__(self, nowplaying_url=None):
+        super().__init__(
+            name="song",
+            description="Shows the currently playing song"
+        )
+        self.nowplaying_url = nowplaying_url
+
+    async def execute(self, message: Any, **kwargs) -> Optional[str]:
+        import asyncio
+        import re
+        import requests as req
+
+        if not self.nowplaying_url:
+            return "NOWPLAYING_URL is not set in .env"
+
+        def fetch_html():
+            return req.get(self.nowplaying_url, timeout=5).text
+
+        try:
+            html = await asyncio.to_thread(fetch_html)
+
+            title_match = re.search(r'class="sideways-title"[^>]*>([^<]+)</h1>', html)
+            artist_match = re.search(r'class="sideways-artist"[^>]*>([^<]+)</h2>', html)
+            label_match = re.search(r'class="sideways-label"[^>]*>([^<]+)</h3>', html)
+
+            title = title_match.group(1).strip() if title_match else None
+            artist = artist_match.group(1).strip() if artist_match else None
+            label = label_match.group(1).strip() if label_match else None
+
+            if title and artist and label:
+                return f"Now playing: {title} by {artist} [{label}] 🎵"
+            elif title and artist:
+                return f"Now playing: {title} by {artist} 🎵"
+            elif title:
+                return f"Now playing: {title} 🎵"
+            else:
+                return "Could not read song info from Now Playing service."
+        except req.exceptions.ConnectionError:
+            return "Cannot connect to Now Playing service. Is VirtualDJ running?"
+        except Exception as e:
+            return f"Error fetching song info: {e}"
+
+
 class TimeoutCommand(BaseCommand):
     """Timeout a user (mods only)."""
 
@@ -455,6 +501,7 @@ def get_basic_commands() -> list:
         HelpCommand(),  # Will be configured later
         PingCommand(),
         AboutCommand(),
+        SongCommand(),  # Will be configured later
         TimeoutCommand(),  # Will be configured later
         EightBallCommand(),
         HugCommand(),

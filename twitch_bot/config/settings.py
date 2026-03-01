@@ -41,6 +41,7 @@ class BotConfig:
     max_reconnect_attempts: int = 5
     reconnect_delay: int = 30
     log_level: str = "INFO"
+    nowplaying_url: str = ""
     
     def __post_init__(self):
         """Validate bot configuration."""
@@ -76,7 +77,8 @@ class Config:
             command_prefix=os.getenv("COMMAND_PREFIX", "!"),
             max_reconnect_attempts=int(os.getenv("MAX_RECONNECT_ATTEMPTS", "5")),
             reconnect_delay=int(os.getenv("RECONNECT_DELAY", "30")),
-            log_level=os.getenv("LOG_LEVEL", "INFO")
+            log_level=os.getenv("LOG_LEVEL", "INFO"),
+            nowplaying_url=os.getenv("NOWPLAYING_URL", "")
         )
         
         return cls(twitch=twitch_config, bot=bot_config)
